@@ -1,0 +1,14 @@
+#include <stdint.h>
+#include <omo/utilities/git_revision.hpp>
+
+#define OMO_GIT_REVISION_SHA "@OMO_GIT_REVISION_SHA@"
+#define OMO_GIT_REVISION_UNIX_TIMESTAMP @OMO_GIT_REVISION_UNIX_TIMESTAMP@
+#define OMO_GIT_REVISION_DESCRIPTION "@OMO_GIT_REVISION_DESCRIPTION@"
+
+namespace omo { namespace utilities {
+
+const char* const git_revision_sha = OMO_GIT_REVISION_SHA;
+const uint32_t git_revision_unix_timestamp = OMO_GIT_REVISION_UNIX_TIMESTAMP;
+const char* const git_revision_description = OMO_GIT_REVISION_DESCRIPTION;
+
+} } // end namespace omo::utilities

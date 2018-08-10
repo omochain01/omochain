@@ -22,11 +22,11 @@
  * THE SOFTWARE.
  */
 
-#include <eos/chain/database.hpp>
-#include <eos/chain/global_property_object.hpp>
-#include <eos/chain/producer_object.hpp>
+#include <omo/chain/database.hpp>
+#include <omo/chain/global_property_object.hpp>
+#include <omo/chain/producer_object.hpp>
 
-namespace eos { namespace chain {
+namespace omo { namespace chain {
 
 using boost::container::flat_set;
 
@@ -56,15 +56,6 @@ fc::time_point_sec database::get_slot_time(uint32_t slot_num)const
    int64_t head_block_abs_slot = head_block_time().sec_since_epoch() / interval;
    fc::time_point_sec head_slot_time(head_block_abs_slot * interval);
 
-   const global_property_object& gpo = get_global_properties();
-
-   if( dpo.dynamic_flags & dynamic_global_property_object::maintenance_flag )
-      slot_num += gpo.parameters.maintenance_skip_slots;
-
-   // "slot 0" is head_slot_time
-   // "slot 1" is head_slot_time,
-   //   plus maint interval if head block is a maint block
-   //   plus block interval if head block is not a maint block
    return head_slot_time + (slot_num * interval);
 }
 
@@ -79,7 +70,7 @@ uint32_t database::get_slot_at_time(fc::time_point_sec when)const
 uint32_t database::producer_participation_rate()const
 {
    const dynamic_global_property_object& dpo = get_dynamic_global_properties();
-   return uint64_t(EOS_100_PERCENT) * dpo.recent_slots_filled.popcount() / 128;
+   return uint64_t(OMO_100_PERCENT) * dpo.recent_slots_filled.popcount() / 128;
 }
 
 void database::update_producer_schedule()

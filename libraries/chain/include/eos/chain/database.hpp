@@ -22,23 +22,23 @@
  * THE SOFTWARE.
  */
 #pragma once
-#include <eos/chain/global_property_object.hpp>
-#include <eos/chain/node_property_object.hpp>
-#include <eos/chain/fork_database.hpp>
-#include <eos/chain/block_database.hpp>
-#include <eos/chain/genesis_state.hpp>
-#include <eos/chain/evaluator.hpp>
+#include <omo/chain/global_property_object.hpp>
+#include <omo/chain/node_property_object.hpp>
+#include <omo/chain/fork_database.hpp>
+#include <omo/chain/block_database.hpp>
+#include <omo/chain/genesis_state.hpp>
+#include <omo/chain/evaluator.hpp>
 
 #include <chainbase/chainbase.hpp>
 #include <fc/signals.hpp>
 
-#include <eos/chain/protocol/protocol.hpp>
+#include <omo/chain/protocol/protocol.hpp>
 
 #include <fc/log/logger.hpp>
 
 #include <map>
 
-namespace eos { namespace chain {
+namespace omo { namespace chain {
    class op_evaluator;
    class transaction_evaluation_state;
 
@@ -191,7 +191,7 @@ namespace eos { namespace chain {
           * Use the get_slot_time() and get_slot_at_time() functions
           * to convert between slot_num and timestamp.
           *
-          * Passing slot_num == 0 returns EOS_NULL_PRODUCER
+          * Passing slot_num == 0 returns OMO_NULL_PRODUCER
           */
          producer_id_type get_scheduled_producer(uint32_t slot_num)const;
 
@@ -227,7 +227,7 @@ namespace eos { namespace chain {
          time_point_sec   head_block_time()const;
          uint32_t         head_block_num()const;
          block_id_type    head_block_id()const;
-         producer_id_type  head_block_producer()const;
+         producer_id_type head_block_producer()const;
 
          decltype( chain_parameters::block_interval ) block_interval( )const;
 

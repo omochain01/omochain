@@ -22,14 +22,14 @@
  * THE SOFTWARE.
  */
 
-#include <eos/chain/database.hpp>
+#include <omo/chain/database.hpp>
 
-#include <eos/chain/chain_property_object.hpp>
-#include <eos/chain/global_property_object.hpp>
+#include <omo/chain/chain_property_object.hpp>
+#include <omo/chain/global_property_object.hpp>
 
 #include <fc/smart_ref_impl.hpp>
 
-namespace eos { namespace chain {
+namespace omo { namespace chain {
 
 const global_property_object& database::get_global_properties()const
 {
@@ -54,6 +54,13 @@ uint32_t database::head_block_num()const
 block_id_type database::head_block_id()const
 {
    return get_dynamic_global_properties().head_block_id;
+}
+
+producer_id_type database::head_block_producer() const
+{
+   if (auto head_block = fetch_block_by_id(head_block_id()))
+      return head_block->producer;
+   return {};
 }
 
 decltype( chain_parameters::block_interval ) database::block_interval( )const

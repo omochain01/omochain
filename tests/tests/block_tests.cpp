@@ -24,57 +24,146 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include <eos/chain/database.hpp>
-#include <eos/chain/exceptions.hpp>
-#include <eos/chain/account_object.hpp>
+#include <omo/chain/database.hpp>
+#include <omo/chain/exceptions.hpp>
+#include <omo/chain/account_object.hpp>
 
-#include <eos/utilities/tempdir.hpp>
+#include <omo/utilities/tempdir.hpp>
 
 #include <fc/crypto/digest.hpp>
 
 #include "../common/database_fixture.hpp"
 
-using namespace eos::chain;
-using namespace eos::chain::test;
-
-genesis_state_type make_genesis() {
-   genesis_state_type genesis_state;
-
-   genesis_state.initial_timestamp = time_point_sec( EOS_TESTING_GENESIS_TIMESTAMP );
-
-   auto init_account_priv_key = fc::ecc::private_key::regenerate(fc::sha256::hash(string("null_key")));
-   genesis_state.initial_producer_count = 10;
-   for( int i = 0; i < genesis_state.initial_producer_count; ++i )
-   {
-      auto name = "init"+fc::to_string(i);
-      genesis_state.initial_accounts.emplace_back(name,
-                                                  init_account_priv_key.get_public_key(),
-                                                  init_account_priv_key.get_public_key());
-      genesis_state.initial_producers.push_back({name, init_account_priv_key.get_public_key()});
-   }
-   return genesis_state;
-}
+using namespace omo::chain;
+using namespace omo::chain::test;
 
 BOOST_AUTO_TEST_SUITE(block_tests)
 
 BOOST_FIXTURE_TEST_CASE(produce_blocks, testing_fixture)
 { try {
-   testing_database db(*this, "main");
-   db.open();
-   BOOST_CHECK_EQUAL(db.head_block_num(), 0);
-   db.produce_blocks();
-   BOOST_CHECK_EQUAL(db.head_block_num(), 1);
-   db.produce_blocks(5);
-   BOOST_CHECK_EQUAL(db.head_block_num(), 6);
-   db.produce_blocks(db.get_global_properties().active_producers.size());
-   BOOST_CHECK_EQUAL(db.head_block_num(), db.get_global_properties().active_producers.size() + 6);
+      testing_database db(*this);
+      db.open();
+      BOOST_CHECK_EQUAL(db.head_block_num(), 0);
+      db.produce_blocks();
+      BOOST_CHECK_EQUAL(db.head_block_num(), 1);
+      db.produce_blocks(5);
+      BOOST_CHECK_EQUAL(db.head_block_num(), 6);
+      db.produce_blocks(db.get_global_properties().active_producers.size());
+      BOOST_CHECK_EQUAL(db.head_block_num(), db.get_global_properties().active_producers.size() + 6);
+} FC_LOG_AND_RETHROW() }
+
+BOOST_FIXTURE_TEST_CASE(missed_blocks, testing_fixture)
+{ try {
+      testing_database db(*this);
+      db.open();
+
+      db.produce_blocks();
+      BOOST_CHECK_EQUAL(db.head_block_num(), 1);
+
+      producer_id_type skipped_producers[3] = {db.get_scheduled_producer(1),
+                                               db.get_scheduled_producer(2),
+                                               db.get_scheduled_producer(3)};
+      auto next_block_time = db.get_slot_time(4);
+      auto next_producer = db.get_scheduled_producer(4);
+
+      BOOST_CHECK_EQUAL(db.head_block_num(), 1);
+      db.produce_blocks(1, 3);
+      BOOST_CHECK_EQUAL(db.head_block_num(), 2);
+      BOOST_CHECK_EQUAL(db.head_block_time().to_iso_string(), next_block_time.to_iso_string());
+      BOOST_CHECK_EQUAL(db.head_block_producer()._id, next_producer._id);
+      BOOST_CHECK_EQUAL(db.get(next_producer).total_missed, 0);
+
+      for (auto producer : skipped_producers) {
+         BOOST_CHECK_EQUAL(db.get(producer).total_missed, 1);
+      }
+} FC_LOG_AND_RETHROW() }
+
+BOOST_FIXTURE_TEST_CASE(no_network, testing_fixture)
+{ try {
+      testing_database db1(*this);
+      testing_database db2(*this);
+
+      db1.open();
+      db2.open();
+
+      BOOST_CHECK_EQUAL(db1.head_block_num(), 0);
+      BOOST_CHECK_EQUAL(db2.head_block_num(), 0);
+      db1.produce_blocks();
+      BOOST_CHECK_EQUAL(db1.head_block_num(), 1);
+      BOOST_CHECK_EQUAL(db2.head_block_num(), 0);
+      db2.produce_blocks(5);
+      BOOST_CHECK_EQUAL(db1.head_block_num(), 1);
+      BOOST_CHECK_EQUAL(db2.head_block_num(), 5);
+} FC_LOG_AND_RETHROW() }
+
+BOOST_FIXTURE_TEST_CASE(simple_network, testing_fixture)
+{ try {
+      testing_database db1(*this, "a");
+      testing_database db2(*this, "b");
+      testing_network net;
+
+      db1.open();
+      db2.open();
+      net.connect_database(db1);
+      net.connect_database(db2);
+
+      BOOST_CHECK_EQUAL(db1.head_block_num(), 0);
+      BOOST_CHECK_EQUAL(db2.head_block_num(), 0);
+      db1.produce_blocks();
+      BOOST_CHECK_EQUAL(db1.head_block_num(), 1);
+      BOOST_CHECK_EQUAL(db2.head_block_num(), 1);
+      BOOST_CHECK_EQUAL(db1.head_block_id().str(), db2.head_block_id().str());
+      db2.produce_blocks(5);
+      BOOST_CHECK_EQUAL(db1.head_block_num(), 6);
+      BOOST_CHECK_EQUAL(db2.head_block_num(), 6);
+      BOOST_CHECK_EQUAL(db1.head_block_id().str(), db2.head_block_id().str());
+} FC_LOG_AND_RETHROW() }
+
+BOOST_FIXTURE_TEST_CASE(forked_network, testing_fixture)
+{ try {
+      testing_database db1(*this);
+      testing_database db2(*this);
+      testing_network net;
+
+      db1.open();
+      db2.open();
+
+      BOOST_CHECK_EQUAL(db1.head_block_num(), 0);
+      BOOST_CHECK_EQUAL(db2.head_block_num(), 0);
+      db1.produce_blocks();
+      BOOST_CHECK_EQUAL(db1.head_block_num(), 1);
+      BOOST_CHECK_EQUAL(db2.head_block_num(), 0);
+      BOOST_CHECK_NE(db1.head_block_id().str(), db2.head_block_id().str());
+
+      net.connect_database(db1);
+      net.connect_database(db2);
+      BOOST_CHECK_EQUAL(db2.head_block_num(), 1);
+      BOOST_CHECK_EQUAL(db1.head_block_id().str(), db2.head_block_id().str());
+
+      db2.produce_blocks(5);
+      BOOST_CHECK_EQUAL(db1.head_block_num(), 6);
+      BOOST_CHECK_EQUAL(db2.head_block_num(), 6);
+      BOOST_CHECK_EQUAL(db1.head_block_id().str(), db2.head_block_id().str());
+
+      net.disconnect_database(db1);
+      db1.produce_blocks(1, 1);
+      db2.produce_blocks();
+      BOOST_CHECK_EQUAL(db1.head_block_num(), 7);
+      BOOST_CHECK_EQUAL(db2.head_block_num(), 7);
+      BOOST_CHECK_NE(db1.head_block_id().str(), db2.head_block_id().str());
+
+      db2.produce_blocks(1, 1);
+      net.connect_database(db1);
+      BOOST_CHECK_EQUAL(db1.head_block_num(), 8);
+      BOOST_CHECK_EQUAL(db2.head_block_num(), 8);
+      BOOST_CHECK_EQUAL(db1.head_block_id().str(), db2.head_block_id().str());
 } FC_LOG_AND_RETHROW() }
 
 /*
 BOOST_AUTO_TEST_CASE( block_database_test )
 {
    try {
-      fc::temp_directory data_dir( eos::utilities::temp_directory_path() );
+      fc::temp_directory data_dir( omo::utilities::temp_directory_path() );
 
       block_database bdb;
       bdb.open( data_dir.path() );
@@ -134,8 +223,8 @@ BOOST_AUTO_TEST_CASE( block_database_test )
 BOOST_AUTO_TEST_CASE( generate_empty_blocks )
 {
    try {
-      fc::time_point_sec now( EOS_TESTING_GENESIS_TIMESTAMP );
-      fc::temp_directory data_dir( eos::utilities::temp_directory_path() );
+      fc::time_point_sec now( OMO_TESTING_GENESIS_TIMESTAMP );
+      fc::temp_directory data_dir( omo::utilities::temp_directory_path() );
       signed_block b;
 
       // TODO:  Don't generate this here
@@ -147,7 +236,7 @@ BOOST_AUTO_TEST_CASE( generate_empty_blocks )
          b = db.generate_block(db.get_slot_time(1), db.get_scheduled_producer(1), init_account_priv_key, database::skip_nothing);
 
          // TODO:  Change this test when we correct #406
-         // n.b. we generate EOS_MIN_UNDO_HISTORY+1 extra blocks which will be discarded on save
+         // n.b. we generate OMO_MIN_UNDO_HISTORY+1 extra blocks which will be discarded on save
          for( uint32_t i = 1; ; ++i )
          {
             BOOST_CHECK( db.head_block_id() == b.id() );
@@ -189,11 +278,11 @@ BOOST_AUTO_TEST_CASE( generate_empty_blocks )
 BOOST_AUTO_TEST_CASE( undo_block )
 {
    try {
-      fc::temp_directory data_dir( eos::utilities::temp_directory_path() );
+      fc::temp_directory data_dir( omo::utilities::temp_directory_path() );
       {
          database db;
          db.open(data_dir.path(), TEST_DB_SIZE, make_genesis);
-         fc::time_point_sec now( EOS_TESTING_GENESIS_TIMESTAMP );
+         fc::time_point_sec now( OMO_TESTING_GENESIS_TIMESTAMP );
          std::vector< time_point_sec > time_stack;
 
          auto init_account_priv_key  = fc::ecc::private_key::regenerate(fc::sha256::hash(string("null_key")) );
@@ -237,8 +326,8 @@ BOOST_AUTO_TEST_CASE( undo_block )
 BOOST_AUTO_TEST_CASE( fork_blocks )
 {
    try {
-      fc::temp_directory data_dir1( eos::utilities::temp_directory_path() );
-      fc::temp_directory data_dir2( eos::utilities::temp_directory_path() );
+      fc::temp_directory data_dir1( omo::utilities::temp_directory_path() );
+      fc::temp_directory data_dir2( omo::utilities::temp_directory_path() );
 
       database db1;
       db1.open(data_dir1.path(), TEST_DB_SIZE, make_genesis);
@@ -281,7 +370,7 @@ BOOST_AUTO_TEST_CASE( fork_blocks )
          good_block = b;
          b.sign( init_account_priv_key );
          BOOST_CHECK_EQUAL(b.block_num(), 14);
-         EOS_CHECK_THROW(PUSH_BLOCK( db1, b ), fc::exception);
+         OMO_CHECK_THROW(PUSH_BLOCK( db1, b ), fc::exception);
       }
       BOOST_CHECK_EQUAL(db1.head_block_num(), 13);
       BOOST_CHECK_EQUAL(db1.head_block_id().str(), db1_tip);
@@ -348,14 +437,14 @@ BOOST_FIXTURE_TEST_CASE( rsf_missed_blocks, database_fixture )
 
       auto pct = []( uint32_t x ) -> uint32_t
       {
-         return uint64_t( EOS_100_PERCENT ) * x / 128;
+         return uint64_t( OMO_100_PERCENT ) * x / 128;
       };
 
       BOOST_CHECK_EQUAL( rsf(),
          "1111111111111111111111111111111111111111111111111111111111111111"
          "1111111111111111111111111111111111111111111111111111111111111111"
       );
-      BOOST_CHECK_EQUAL( db.producer_participation_rate(), EOS_100_PERCENT );
+      BOOST_CHECK_EQUAL( db.producer_participation_rate(), OMO_100_PERCENT );
 
       generate_block( ~0, init_account_priv_key, 1 );
       BOOST_CHECK_EQUAL( rsf(),

@@ -1,30 +1,10 @@
 
-file(GLOB HEADERS "include/eos/chain/*.hpp")
-file(GLOB PROTOCOL_HEADERS "include/eos/chain/protocol/*.hpp")
-
-if( EOS_DISABLE_UNITY_BUILD )
-   set( EOS_DB_FILES
-        db_block.cpp
-        db_debug.cpp
-        db_getter.cpp
-        db_init.cpp
-        db_maint.cpp
-        db_management.cpp
-        db_update.cpp
-        db_producer_schedule.cpp
-      )
-   message( STATUS "Eos database unity build disabled" )
-else( EOS_DISABLE_UNITY_BUILD )
-   set( EOS_DB_FILES
-        database.cpp )
-   message( STATUS "Eos database unity build enabled" )
-endif( EOS_DISABLE_UNITY_BUILD )
+file(GLOB HEADERS "include/omo/chain/*.hpp")
+file(GLOB PROTOCOL_HEADERS "include/omo/chain/protocol/*.hpp")
 
 ## SORT .cpp by most likely to change / break compile
-add_library( eos_chain
-
-             # As database takes the longest to compile, start it first
-             ${EOS_DB_FILES}
+add_library( omo_chain
+             database.cpp
              fork_database.cpp
 
              protocol/types.cpp
@@ -43,8 +23,8 @@ add_library( eos_chain
              ${PROTOCOL_HEADERS}
            )
 
-target_link_libraries( eos_chain fc chainbase )
-target_include_directories( eos_chain
+target_link_libraries( omo_chain fc chainbase )
+target_include_directories( omo_chain
                             PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include" "${CMAKE_CURRENT_BINARY_DIR}/include" )
 
 if(MSVC)
@@ -52,11 +32,11 @@ if(MSVC)
 endif(MSVC)
 
 INSTALL( TARGETS
-   eos_chain
+   omo_chain
 
    RUNTIME DESTINATION bin
    LIBRARY DESTINATION lib
    ARCHIVE DESTINATION lib
 )
-INSTALL( FILES ${HEADERS} DESTINATION "include/eos/chain" )
-INSTALL( FILES ${PROTOCOL_HEADERS} DESTINATION "include/eos/chain/protocol" )
+INSTALL( FILES ${HEADERS} DESTINATION "include/omo/chain" )
+INSTALL( FILES ${PROTOCOL_HEADERS} DESTINATION "include/omo/chain/protocol" )

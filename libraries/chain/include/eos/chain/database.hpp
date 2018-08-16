@@ -59,7 +59,7 @@ namespace omo { namespace chain {
          enum validation_steps
          {
             skip_nothing                = 0,
-            skip_producer_signature      = 1 << 0,  ///< used while reindexing
+            skip_producer_signature     = 1 << 0,  ///< used while reindexing
             skip_transaction_signatures = 1 << 1,  ///< used by non-producer nodes
             skip_transaction_dupe_check = 1 << 2,  ///< used while reindexing
             skip_fork_db                = 1 << 3,  ///< used while reindexing
@@ -69,7 +69,7 @@ namespace omo { namespace chain {
             skip_merkle_check           = 1 << 7,  ///< used while reindexing
             skip_assert_evaluation      = 1 << 8,  ///< used while reindexing
             skip_undo_history_check     = 1 << 9,  ///< used while reindexing
-            skip_producer_schedule_check = 1 << 10,  ///< used while reindexing
+            skip_producer_schedule_check= 1 << 10,  ///< used while reindexing
             skip_validate               = 1 << 11 ///< used prior to checkpoint, skips validate() call on transaction
          };
 
@@ -104,7 +104,7 @@ namespace omo { namespace chain {
           * Will close the database before wiping. Database will be closed when this function returns.
           */
          void wipe(const fc::path& data_dir, bool include_blocks);
-         void close(bool rewind = true);
+         void close();
 
          //////////////////// db_block.cpp ////////////////////
 
@@ -126,7 +126,7 @@ namespace omo { namespace chain {
           */
          uint32_t producer_participation_rate()const;
 
-         void                              add_checkpoints( const flat_map<uint32_t,block_id_type>& checkpts );
+         void                                   add_checkpoints(const flat_map<uint32_t,block_id_type>& checkpts);
          const flat_map<uint32_t,block_id_type> get_checkpoints()const { return _checkpoints; }
          bool before_last_checkpoint()const;
 
@@ -271,7 +271,7 @@ namespace omo { namespace chain {
          signed_transaction apply_transaction( const signed_transaction& trx, uint32_t skip = skip_nothing );
          void               apply_operation( transaction_evaluation_state& eval_state, const operation& op );
       private:
-         void                  _apply_block( const signed_block& next_block );
+         void               _apply_block( const signed_block& next_block );
          signed_transaction _apply_transaction( const signed_transaction& trx );
 
          ///Steps involved in applying a new block
@@ -286,28 +286,9 @@ namespace omo { namespace chain {
          void update_signing_producer(const producer_object& signing_producer, const signed_block& new_block);
          void update_last_irreversible_block();
          void clear_expired_transactions();
-         void update_maintenance_flag( bool new_maintenance_flag );
-
-         ///Steps performed only at maintenance intervals
-         ///@{
-
-         //////////////////// db_maint.cpp ////////////////////
-
-         void initialize_budget_record( fc::time_point_sec now, budget_record& rec )const;
-         void process_budget();
-         void pay_workers( share_type& budget );
-         void perform_chain_maintenance(const signed_block& next_block, const global_property_object& global_props);
-         void update_active_produceres();
-         void update_active_committee_members();
-         void update_worker_votes();
-
-         template<class... Types>
-         void perform_account_maintenance(std::tuple<Types...> helpers);
-         ///@}
-         ///@}
 
          vector< signed_transaction >        _pending_tx;
-         fork_database                          _fork_db;
+         fork_database                       _fork_db;
 
          /**
           *  Note: we can probably store blocks by block num rather than

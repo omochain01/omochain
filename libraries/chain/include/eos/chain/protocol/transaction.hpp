@@ -22,12 +22,12 @@
  * THE SOFTWARE.
  */
 #pragma once
-#include <eos/chain/protocol/operations.hpp>
-#include <eos/chain/protocol/types.hpp>
+#include <omo/chain/protocol/types.hpp>
+#include <omo/chain/message.hpp>
 
 #include <numeric>
 
-namespace eos { namespace chain {
+namespace omo { namespace chain {
 
    /**
     * @defgroup transactions Transactions
@@ -82,7 +82,8 @@ namespace eos { namespace chain {
        */
       fc::time_point_sec expiration;
 
-      vector<operation>  operations;
+      /// The messages in this transaction
+      vector<message> messages;
 
       /// Calculate the digest for a transaction
       digest_type         digest()const;
@@ -113,15 +114,15 @@ namespace eos { namespace chain {
 
       vector<signature_type> signatures;
 
-      /// Removes all operations and signatures
-      void clear() { operations.clear(); signatures.clear(); }
+      /// Removes all messages and signatures
+      void clear() { messages.clear(); signatures.clear(); }
 
       digest_type merkle_digest()const;
    };
 
    /// @} transactions group
 
-} } // eos::chain
+} } // omo::chain
 
-FC_REFLECT( eos::chain::transaction, (ref_block_num)(ref_block_prefix)(expiration)(operations) )
-FC_REFLECT_DERIVED( eos::chain::signed_transaction, (eos::chain::transaction), (signatures) )
+FC_REFLECT( omo::chain::transaction, (ref_block_num)(ref_block_prefix)(expiration)(messages) )
+FC_REFLECT_DERIVED( omo::chain::signed_transaction, (omo::chain::transaction), (signatures) )

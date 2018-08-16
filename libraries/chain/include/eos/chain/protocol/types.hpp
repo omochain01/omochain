@@ -43,7 +43,7 @@
 #include <vector>
 #include <deque>
 #include <cstdint>
-#include <eos/chain/protocol/config.hpp>
+#include <omo/chain/protocol/config.hpp>
 
 #include <chainbase/chainbase.hpp>
 
@@ -54,7 +54,7 @@
     NAME(Constructor&& c, chainbase::allocator<Allocator> a) \
     { c(*this); }
 
-namespace eos { namespace chain {
+namespace omo { namespace chain {
    using                               std::map;
    using                               std::vector;
    using                               std::unordered_map;
@@ -90,8 +90,11 @@ namespace eos { namespace chain {
    using chainbase::allocator;
    using shared_string = boost::interprocess::basic_string<char, std::char_traits<char>, allocator<char>>;
 
-   typedef fc::ecc::private_key        private_key_type;
-   typedef fc::sha256 chain_id_type;
+   using private_key_type = fc::ecc::private_key;
+   using chain_id_type = fc::sha256;
+
+   using account = std::string;
+   using message_type = std::string;
 
    /**
     *  List all object types from all namespaces here so they can
@@ -107,7 +110,6 @@ namespace eos { namespace chain {
       global_property_object_type,
       dynamic_global_property_object_type,
       block_summary_object_type,
-      operation_history_object_type,
       transaction_object_type,
       producer_object_type,
       chain_property_object_type,
@@ -116,7 +118,6 @@ namespace eos { namespace chain {
 
    class account_object;
    class producer_object;
-   class operation_history_object;
 
    using account_id_type = chainbase::oid<account_object>;
    using producer_id_type = chainbase::oid<producer_object>;
@@ -196,32 +197,37 @@ namespace eos { namespace chain {
       friend bool operator == ( const extended_private_key_type& p1, const extended_private_key_type& p2);
       friend bool operator != ( const extended_private_key_type& p1, const extended_private_key_type& p2);
    };
-} }  // eos::chain
+} }  // omo::chain
 
 namespace fc
 {
-    void to_variant( const eos::chain::public_key_type& var,  fc::variant& vo );
-    void from_variant( const fc::variant& var,  eos::chain::public_key_type& vo );
-    void to_variant( const eos::chain::extended_public_key_type& var, fc::variant& vo );
-    void from_variant( const fc::variant& var, eos::chain::extended_public_key_type& vo );
-    void to_variant( const eos::chain::extended_private_key_type& var, fc::variant& vo );
-    void from_variant( const fc::variant& var, eos::chain::extended_private_key_type& vo );
+    void to_variant( const omo::chain::public_key_type& var,  fc::variant& vo );
+    void from_variant( const fc::variant& var,  omo::chain::public_key_type& vo );
+    void to_variant( const omo::chain::extended_public_key_type& var, fc::variant& vo );
+    void from_variant( const fc::variant& var, omo::chain::extended_public_key_type& vo );
+    void to_variant( const omo::chain::extended_private_key_type& var, fc::variant& vo );
+    void from_variant( const fc::variant& var, omo::chain::extended_private_key_type& vo );
 }
 
-FC_REFLECT( eos::chain::public_key_type, (key_data) )
-FC_REFLECT( eos::chain::public_key_type::binary_key, (data)(check) )
-FC_REFLECT( eos::chain::extended_public_key_type, (key_data) )
-FC_REFLECT( eos::chain::extended_public_key_type::binary_key, (check)(data) )
-FC_REFLECT( eos::chain::extended_private_key_type, (key_data) )
-FC_REFLECT( eos::chain::extended_private_key_type::binary_key, (check)(data) )
+FC_REFLECT( omo::chain::public_key_type, (key_data) )
+FC_REFLECT( omo::chain::public_key_type::binary_key, (data)(check) )
+FC_REFLECT( omo::chain::extended_public_key_type, (key_data) )
+FC_REFLECT( omo::chain::extended_public_key_type::binary_key, (check)(data) )
+FC_REFLECT( omo::chain::extended_private_key_type, (key_data) )
+FC_REFLECT( omo::chain::extended_private_key_type::binary_key, (check)(data) )
 
-FC_REFLECT(eos::chain::account_id_type, (_id))
-FC_REFLECT(eos::chain::producer_id_type, (_id))
+FC_REFLECT(omo::chain::account_id_type, (_id))
+FC_REFLECT(omo::chain::producer_id_type, (_id))
 
-FC_REFLECT_ENUM( eos::chain::object_type,
+FC_REFLECT_ENUM( omo::chain::object_type,
                  (null_object_type)
+                 (account_object_type)
                  (global_property_object_type)
                  (dynamic_global_property_object_type)
+                 (block_summary_object_type)
+                 (transaction_object_type)
+                 (producer_object_type)
+                 (chain_property_object_type)
                  (OBJECT_TYPE_COUNT)
                )
-FC_REFLECT( eos::chain::void_t, )
+FC_REFLECT( omo::chain::void_t, )

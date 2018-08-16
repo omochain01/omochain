@@ -23,12 +23,12 @@
  */
 #pragma once
 
-#include <eos/app/plugin.hpp>
-#include <eos/chain/database.hpp>
+#include <omo/app/plugin.hpp>
+#include <omo/chain/database.hpp>
 
 #include <fc/thread/future.hpp>
 
-namespace eos { namespace producer_plugin {
+namespace omo { namespace producer_plugin {
 
 namespace block_production_condition
 {
@@ -46,7 +46,7 @@ namespace block_production_condition
    };
 }
 
-class producer_plugin : public eos::app::plugin {
+class producer_plugin : public omo::app::plugin {
 public:
    ~producer_plugin() {
       try {
@@ -79,13 +79,12 @@ private:
 
    boost::program_options::variables_map _options;
    bool _production_enabled = false;
-   bool _consecutive_production_enabled = false;
-   uint32_t _required_producer_participation = 33 * EOS_1_PERCENT;
-   uint32_t _production_skip_flags = eos::chain::database::skip_nothing;
+   uint32_t _required_producer_participation = 33 * OMO_1_PERCENT;
+   uint32_t _production_skip_flags = omo::chain::database::skip_nothing;
 
    std::map<chain::public_key_type, fc::ecc::private_key> _private_keys;
    std::set<chain::producer_id_type> _producers;
    fc::future<void> _block_production_task;
 };
 
-} } //eos::producer_plugin
+} } //omo::producer_plugin

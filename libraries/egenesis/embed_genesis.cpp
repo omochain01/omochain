@@ -34,10 +34,10 @@
 #include <fc/string.hpp>
 #include <fc/io/fstream.hpp>
 #include <fc/io/json.hpp>
-#include <eos/chain/genesis_state.hpp>
-#include <eos/chain/protocol/types.hpp>
+#include <omo/chain/genesis_state.hpp>
+#include <omo/chain/protocol/types.hpp>
 
-using namespace eos::chain;
+using namespace omo::chain;
 
 static const char generated_file_banner[] =
 "//                                   _           _    __ _ _        //\n"
@@ -54,15 +54,15 @@ static const char generated_file_banner[] =
 "// Warning: This is a generated file, any changes made here will be //\n"
 "// overwritten by the build process.  If you need to change what    //\n"
 "// is generated here, you should use the CMake variable             //\n"
-"// EOS_EGENESIS_JSON to specify an embedded genesis state.     //\n"
+"// OMO_EGENESIS_JSON to specify an embedded genesis state.     //\n"
 "//                                                                  //\n"
 ;
 
 // hack:  import create_example_genesis() even though it's a way, way
 // specific internal detail
-namespace eos { namespace app { namespace detail {
+namespace omo { namespace app { namespace detail {
 genesis_state_type create_example_genesis();
-} } } // eos::app::detail
+} } } // omo::app::detail
 
 fc::path get_path(
    const boost::program_options::variables_map& options,
@@ -203,8 +203,6 @@ void load_genesis(
       info.genesis_json = std::string();
       read_file_contents( genesis_json_filename, *info.genesis_json );
    }
-   else
-      info.genesis = eos::app::detail::create_example_genesis();
 
    if( options.count("chain-id") )
    {
@@ -218,7 +216,7 @@ void load_genesis(
 int main( int argc, char** argv )
 {
    int main_return = 0;
-   boost::program_options::options_description cli_options("Eos Chain Identifier");
+   boost::program_options::options_description cli_options("Omo Chain Identifier");
    cli_options.add_options()
       ("help,h", "Print this help message and exit.")
       ("genesis-json,g", boost::program_options::value<boost::filesystem::path>(), "File to read genesis state from")

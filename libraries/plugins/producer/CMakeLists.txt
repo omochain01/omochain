@@ -1,15 +1,15 @@
-file(GLOB HEADERS "include/eos/producer/*.hpp")
+file(GLOB HEADERS "include/omo/producer/*.hpp")
 
-add_library( eos_producer 
+add_library( omo_producer 
              producer.cpp
            )
 
-target_link_libraries( eos_producer eos_chain eos_app )
-target_include_directories( eos_producer
+target_link_libraries( omo_producer appbase omo_chain omo_utilities )
+target_include_directories( omo_producer
                             PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include" )
 
 install( TARGETS
-   eos_producer
+   omo_producer
 
    RUNTIME DESTINATION bin
    LIBRARY DESTINATION lib

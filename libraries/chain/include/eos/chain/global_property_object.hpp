@@ -25,15 +25,15 @@
 #include <fc/uint128.hpp>
 #include <fc/array.hpp>
 
-#include <eos/chain/protocol/chain_parameters.hpp>
-#include <eos/chain/protocol/types.hpp>
-#include <eos/chain/database.hpp>
+#include <omo/chain/protocol/chain_parameters.hpp>
+#include <omo/chain/protocol/types.hpp>
+#include <omo/chain/database.hpp>
 
 #include <chainbase/chainbase.hpp>
 
 #include "multi_index_includes.hpp"
 
-namespace eos { namespace chain {
+namespace omo { namespace chain {
 
    /**
     * @class global_property_object
@@ -45,13 +45,13 @@ namespace eos { namespace chain {
     */
    class global_property_object : public chainbase::object<global_property_object_type, global_property_object>
    {
-         OBJECT_CTOR(global_property_object)
+         OBJECT_CTOR(global_property_object, (active_producers))
 
          id_type                    id;
          chain_parameters           parameters;
          optional<chain_parameters> pending_parameters;
 
-         vector<producer_id_type>    active_producers; // updated once per maintenance interval
+         shared_vector<producer_id_type> active_producers;
    };
 
    /**
@@ -72,18 +72,7 @@ namespace eos { namespace chain {
          block_id_type     head_block_id;
          time_point_sec    time;
          producer_id_type   current_producer;
-         time_point_sec    next_maintenance_time;
          uint32_t          accounts_registered_this_interval = 0;
-         /**
-          *  Every time a block is missed this increases by
-          *  RECENTLY_MISSED_COUNT_INCREMENT,
-          *  every time a block is found it decreases by
-          *  RECENTLY_MISSED_COUNT_DECREMENT.  It is
-          *  never less than 0.
-          *
-          *  If the recently_missed_count hits 2*UNDO_HISTORY then no new blocks may be pushed.
-          */
-         uint32_t          recently_missed_count = 0;
 
          /**
           * The current absolute slot number.  Equal to the total
@@ -104,20 +93,6 @@ namespace eos { namespace chain {
          uint32_t dynamic_flags = 0;
 
          uint32_t last_irreversible_block_num = 0;
-
-         enum dynamic_flag_bits
-         {
-            /**
-             * If maintenance_flag is set, then the head block is a
-             * maintenance block.  This means
-             * get_time_slot(1) - head_block_time() will have a gap
-             * due to maintenance duration.
-             *
-             * This flag answers the question, "Was maintenance
-             * performed in the last call to apply_block()?"
-             */
-            maintenance_flag = 0x01
-         };
    };
 
    using global_property_multi_index = chainbase::shared_multi_index_container<
@@ -139,25 +114,23 @@ namespace eos { namespace chain {
 
 }}
 
-CHAINBASE_SET_INDEX_TYPE(eos::chain::global_property_object, eos::chain::global_property_multi_index)
-CHAINBASE_SET_INDEX_TYPE(eos::chain::dynamic_global_property_object,
-                         eos::chain::dynamic_global_property_multi_index)
+CHAINBASE_SET_INDEX_TYPE(omo::chain::global_property_object, omo::chain::global_property_multi_index)
+CHAINBASE_SET_INDEX_TYPE(omo::chain::dynamic_global_property_object,
+                         omo::chain::dynamic_global_property_multi_index)
 
-FC_REFLECT(eos::chain::dynamic_global_property_object,
+FC_REFLECT(omo::chain::dynamic_global_property_object,
            (head_block_number)
            (head_block_id)
            (time)
            (current_producer)
-           (next_maintenance_time)
            (accounts_registered_this_interval)
-           (recently_missed_count)
            (current_aslot)
            (recent_slots_filled)
            (dynamic_flags)
            (last_irreversible_block_num)
           )
 
-FC_REFLECT(eos::chain::global_property_object,
+FC_REFLECT(omo::chain::global_property_object,
            (parameters)
            (pending_parameters)
            (active_producers)

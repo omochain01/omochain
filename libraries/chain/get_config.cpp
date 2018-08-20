@@ -22,40 +22,18 @@
  * THE SOFTWARE.
  */
 
-#include <eos/chain/get_config.hpp>
-#include <eos/chain/config.hpp>
-#include <eos/chain/protocol/types.hpp>
+#include <omo/chain/get_config.hpp>
+#include <omo/chain/config.hpp>
+#include <omo/chain/protocol/types.hpp>
 
-namespace eos { namespace chain {
+namespace omo { namespace chain {
 
 fc::variant_object get_config()
 {
    fc::mutable_variant_object result;
 
-   result[ "EOS_KEY_PREFIX" ] = EOS_KEY_PREFIX;
-   result[ "EOS_MIN_TRANSACTION_SIZE_LIMIT" ] = EOS_MIN_TRANSACTION_SIZE_LIMIT;
-   result[ "EOS_MIN_BLOCK_INTERVAL" ] = EOS_MIN_BLOCK_INTERVAL;
-   result[ "EOS_MAX_BLOCK_INTERVAL" ] = EOS_MAX_BLOCK_INTERVAL;
-   result[ "EOS_DEFAULT_BLOCK_INTERVAL" ] = EOS_DEFAULT_BLOCK_INTERVAL;
-   result[ "EOS_DEFAULT_MAX_TRANSACTION_SIZE" ] = EOS_DEFAULT_MAX_TRANSACTION_SIZE;
-   result[ "EOS_DEFAULT_MAX_BLOCK_SIZE" ] = EOS_DEFAULT_MAX_BLOCK_SIZE;
-   result[ "EOS_DEFAULT_MAX_TIME_UNTIL_EXPIRATION" ] = EOS_DEFAULT_MAX_TIME_UNTIL_EXPIRATION;
-   result[ "EOS_DEFAULT_MAINTENANCE_INTERVAL" ] = EOS_DEFAULT_MAINTENANCE_INTERVAL;
-   result[ "EOS_DEFAULT_MAINTENANCE_SKIP_SLOTS" ] = EOS_DEFAULT_MAINTENANCE_SKIP_SLOTS;
-   result[ "EOS_MIN_UNDO_HISTORY" ] = EOS_MIN_UNDO_HISTORY;
-   result[ "EOS_MAX_UNDO_HISTORY" ] = EOS_MAX_UNDO_HISTORY;
-   result[ "EOS_MIN_BLOCK_SIZE_LIMIT" ] = EOS_MIN_BLOCK_SIZE_LIMIT;
-   result[ "EOS_MIN_TRANSACTION_EXPIRATION_LIMIT" ] = EOS_MIN_TRANSACTION_EXPIRATION_LIMIT;
-   result[ "EOS_100_PERCENT" ] = EOS_100_PERCENT;
-   result[ "EOS_1_PERCENT" ] = EOS_1_PERCENT;
-   result[ "EOS_DEFAULT_MAX_PRODUCERES" ] = EOS_DEFAULT_MAX_PRODUCERES;
-   result[ "EOS_MAX_URL_LENGTH" ] = EOS_MAX_URL_LENGTH;
-   result[ "EOS_NEAR_SCHEDULE_CTR_IV" ] = EOS_NEAR_SCHEDULE_CTR_IV;
-   result[ "EOS_FAR_SCHEDULE_CTR_IV" ] = EOS_FAR_SCHEDULE_CTR_IV;
-   result[ "EOS_CORE_ASSET_CYCLE_RATE" ] = EOS_CORE_ASSET_CYCLE_RATE;
-   result[ "EOS_CORE_ASSET_CYCLE_RATE_BITS" ] = EOS_CORE_ASSET_CYCLE_RATE_BITS;
-
+   result[ "OMO_KEY_PREFIX" ] = OMO_KEY_PREFIX;
    return result;
 }
 
-} } // eos::chain
+} } // omo::chain

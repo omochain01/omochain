@@ -23,16 +23,16 @@
  */
 #pragma once
 
-#include <eos/chain/protocol/chain_parameters.hpp>
-#include <eos/chain/protocol/types.hpp>
-#include <eos/chain/immutable_chain_parameters.hpp>
+#include <omo/chain/protocol/chain_parameters.hpp>
+#include <omo/chain/protocol/types.hpp>
+#include <omo/chain/immutable_chain_parameters.hpp>
 
 #include <fc/crypto/sha256.hpp>
 
 #include <string>
 #include <vector>
 
-namespace eos { namespace chain {
+namespace omo { namespace chain {
 using std::string;
 using std::vector;
 
@@ -64,7 +64,6 @@ struct genesis_state_type {
    immutable_chain_parameters               immutable_parameters;
    vector<initial_account_type>             initial_accounts;
    vector<initial_producer_type>            initial_producers;
-   uint64_t                                 initial_producer_count = EOS_DEFAULT_MIN_PRODUCER_COUNT;
 
    /**
     * Temporary, will be moved elsewhere.
@@ -79,12 +78,12 @@ struct genesis_state_type {
    chain_id_type compute_chain_id() const;
 };
 
-} } // namespace eos::chain
+} } // namespace omo::chain
 
-FC_REFLECT(eos::chain::genesis_state_type::initial_account_type, (name)(owner_key)(active_key))
+FC_REFLECT(omo::chain::genesis_state_type::initial_account_type, (name)(owner_key)(active_key))
 
-FC_REFLECT(eos::chain::genesis_state_type::initial_producer_type, (owner_name)(block_signing_key))
+FC_REFLECT(omo::chain::genesis_state_type::initial_producer_type, (owner_name)(block_signing_key))
 
-FC_REFLECT(eos::chain::genesis_state_type,
+FC_REFLECT(omo::chain::genesis_state_type,
            (initial_timestamp)(initial_parameters)(immutable_parameters)(initial_accounts)
-           (initial_producers)(initial_producer_count)(initial_chain_id))
+           (initial_producers)(initial_chain_id))

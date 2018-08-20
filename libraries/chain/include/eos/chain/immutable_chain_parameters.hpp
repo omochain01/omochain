@@ -27,17 +27,17 @@
 
 #include <cstdint>
 
-#include <eos/chain/config.hpp>
+#include <omo/chain/config.hpp>
 
-namespace eos { namespace chain {
+namespace omo { namespace chain {
 
 struct immutable_chain_parameters
 {
-   uint16_t min_producer_count = EOS_DEFAULT_MIN_PRODUCER_COUNT;
+   uint16_t min_producer_count = 21;
 };
 
-} } // eos::chain
+} } // omo::chain
 
-FC_REFLECT( eos::chain::immutable_chain_parameters,
+FC_REFLECT( omo::chain::immutable_chain_parameters,
    (min_producer_count)
 )

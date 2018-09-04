@@ -8,4 +8,4 @@ endif()
 
 file(GLOB UNIT_TESTS "tests/*.cpp")
 add_executable( chain_test ${UNIT_TESTS} ${COMMON_SOURCES} )
-target_link_libraries( chain_test eos_chain eos_app eos_egenesis_none fc ${PLATFORM_SPECIFIC_LIBS} )
+target_link_libraries( chain_test native_system_contract_plugin omo_chain omo_utilities omo_egenesis_none fc ${PLATFORM_SPECIFIC_LIBS} )

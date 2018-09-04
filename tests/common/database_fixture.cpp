@@ -23,11 +23,14 @@
  */
 #include <boost/test/unit_test.hpp>
 #include <boost/program_options.hpp>
+#include <boost/signals2/shared_connection_block.hpp>
 
 #include <omo/chain/account_object.hpp>
 #include <omo/chain/producer_object.hpp>
 
 #include <omo/utilities/tempdir.hpp>
+
+#include <omo/native_system_contract_plugin/native_system_contract_plugin.hpp>
 
 #include <fc/crypto/digest.hpp>
 #include <fc/smart_ref_impl.hpp>
@@ -38,18 +41,18 @@
 
 #include "database_fixture.hpp"
 
-uint32_t OMO_TESTING_GENESIS_TIMESTAMP = 1431700000;
+uint32_t OMO_TESTING_GENESIS_TIMESTAMP = 1431700005;
 
 namespace omo { namespace chain {
 
 testing_fixture::testing_fixture() {
    default_genesis_state.initial_timestamp = fc::time_point_sec(OMO_TESTING_GENESIS_TIMESTAMP);
-   default_genesis_state.initial_producer_count = OMO_DEFAULT_MIN_PRODUCER_COUNT;
-   for (int i = 0; i < default_genesis_state.initial_producer_count; ++i) {
+   default_genesis_state.immutable_parameters.min_producer_count = config::ProducerCount;
+   for (int i = 0; i < default_genesis_state.immutable_parameters.min_producer_count; ++i) {
       auto name = std::string("init") + fc::to_string(i);
       auto private_key = fc::ecc::private_key::regenerate(fc::sha256::hash(name));
       public_key_type public_key = private_key.get_public_key();
-      default_genesis_state.initial_accounts.emplace_back(name, public_key, public_key);
+      default_genesis_state.initial_accounts.emplace_back(name, 100000, public_key, public_key);
       key_ring[public_key] = private_key;
 
       private_key = fc::ecc::private_key::regenerate(fc::sha256::hash(name + ".producer"));
@@ -79,7 +82,7 @@ genesis_state_type&testing_fixture::genesis_state() {
 
 private_key_type testing_fixture::get_private_key(const public_key_type& public_key) const {
    auto itr = key_ring.find(public_key);
-   OMO_ASSERT(itr != key_ring.end(), testing_exception,
+   OMO_ASSERT(itr != key_ring.end(), missing_key_exception,
               "Private key corresponding to public key ${k} not known.", ("k", public_key));
    return itr->second;
 }
@@ -89,14 +92,16 @@ testing_database::testing_database(testing_fixture& fixture, std::string id,
    : genesis_state(override_genesis_state? *override_genesis_state : fixture.genesis_state()),
      fixture(fixture) {
    data_dir = fixture.get_temp_dir(id);
+   // Install the system contract implementation
+   native_system_contract_plugin::install(*this);
 }
 
 void testing_database::open() {
    database::open(data_dir, TEST_DB_SIZE, [this]{return genesis_state;});
 }
 
-void testing_database::reindex() {
-   database::reindex(data_dir, TEST_DB_SIZE, genesis_state);
+void testing_database::replay() {
+   database::replay(data_dir, TEST_DB_SIZE, genesis_state);
 }
 
 void testing_database::wipe(bool include_blocks) {
@@ -151,9 +156,8 @@ void testing_network::connect_database(testing_database& new_database) {
    }
 
    // The new database is now in sync with any old ones; go ahead and connect the propagation signal.
-   databases[&new_database] = new_database.applied_block.connect([this](const signed_block& block) {
-      if (!currently_propagating_block)
-         propagate_block(block);
+   databases[&new_database] = new_database.applied_block.connect([this, &new_database](const signed_block& block) {
+      propagate_block(block, new_database);
    });
 }
 
@@ -165,11 +169,12 @@ void testing_network::disconnect_all() {
    databases.clear();
 }
 
-void testing_network::propagate_block(const signed_block& block) {
-   currently_propagating_block = true;
-   for (const auto& pair : databases)
+void testing_network::propagate_block(const signed_block& block, const testing_database& skip_db) {
+   for (const auto& pair : databases) {
+      if (pair.first == &skip_db) continue;
+      boost::signals2::shared_connection_block blocker(pair.second);
       pair.first->push_block(block);
-   currently_propagating_block = false;
+   }
 }
 
 } } // omo::chain

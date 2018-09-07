@@ -26,10 +26,11 @@
 #include <fc/io/varint.hpp>
 #include <fc/network/ip.hpp>
 #include <fc/io/raw.hpp>
-#include <fc/crypto/ripemd160.hpp>
+#include <fc/crypto/sha512.hpp>
+#include <fc/crypto/sha256.hpp>
 #include <fc/reflect/variant.hpp>
 
-namespace eos { namespace net {
+namespace omo { namespace net {
 
   /**
    *  Defines an 8 byte header that is always present because the minimum encrypted packet
@@ -43,7 +44,7 @@ namespace eos { namespace net {
      uint32_t  msg_type;  // every channel gets a 16 bit message type specifier
   };
 
-  typedef fc::uint160_t message_hash_type;
+  typedef fc::sha256 message_hash_type;
 
   /**
    *  Abstracts the process of packing/unpacking a message for a 
@@ -72,9 +73,9 @@ namespace eos { namespace net {
         size     = (uint32_t)data.size();
      }
 
-     fc::uint160_t id()const
+     fc::sha256 id()const
      {
-        return fc::ripemd160::hash( data.data(), (uint32_t)data.size() );
+        return fc::sha256::hash( data.data(), (uint32_t)data.size() );
      }
 
      /**
@@ -111,7 +112,7 @@ namespace eos { namespace net {
 
 
 
-} } // eos::net
+} } // omo::net
 
-FC_REFLECT( eos::net::message_header, (size)(msg_type) )
-FC_REFLECT_DERIVED( eos::net::message, (eos::net::message_header), (data) )
+FC_REFLECT( omo::net::message_header, (size)(msg_type) )
+FC_REFLECT_DERIVED( omo::net::message, (omo::net::message_header), (data) )

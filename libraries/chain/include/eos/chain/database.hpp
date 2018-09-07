@@ -22,23 +22,23 @@
  * THE SOFTWARE.
  */
 #pragma once
-#include <hotc/chain/global_property_object.hpp>
-#include <hotc/chain/node_property_object.hpp>
-#include <hotc/chain/fork_database.hpp>
-#include <hotc/chain/genesis_state.hpp>
-#include <hotc/chain/block_log.hpp>
+#include <omo/chain/global_property_object.hpp>
+#include <omo/chain/node_property_object.hpp>
+#include <omo/chain/fork_database.hpp>
+#include <omo/chain/genesis_state.hpp>
+#include <omo/chain/block_log.hpp>
 
 #include <chainbase/chainbase.hpp>
 #include <fc/scoped_exit.hpp>
 #include <fc/signals.hpp>
 
-#include <hotc/chain/protocol/protocol.hpp>
+#include <omo/chain/protocol/protocol.hpp>
 
 #include <fc/log/logger.hpp>
 
 #include <map>
 
-namespace hotc { namespace chain {
+namespace omo { namespace chain {
 
    class database;
 
@@ -55,16 +55,16 @@ namespace hotc { namespace chain {
    class precondition_validate_context : public message_validate_context {
       public:
          precondition_validate_context( const database& d, const transaction& t, const message& m, const account_name& r )
-         :message_validate_context(t,m),recipient(r),db(d){}
+         :message_validate_context(t,m),receiver(r),db(d){}
 
-         const account_name& recipient;
+         const account_name& receiver;
          const database&    db;
    };
 
    class apply_context : public precondition_validate_context {
       public:
-         apply_context( database& d, const transaction& t, const message& m, const account_name& recipient )
-         :precondition_validate_context(d,t,m,recipient),mutable_db(d){}
+         apply_context( database& d, const transaction& t, const message& m, const account_name& receiver )
+         :precondition_validate_context(d,t,m,receiver),mutable_db(d){}
 
          database&    mutable_db;
    };
@@ -256,7 +256,7 @@ namespace hotc { namespace chain {
           * Use the get_slot_time() and get_slot_at_time() functions
           * to convert between slot_num and timestamp.
           *
-          * Passing slot_num == 0 returns HOTC_NULL_PRODUCER
+          * Passing slot_num == 0 returns OMO_NULL_PRODUCER
           */
          producer_id_type get_scheduled_producer(uint32_t slot_num)const;
 
@@ -308,28 +308,31 @@ namespace hotc { namespace chain {
          void apply_debug_updates();
          void debug_update(const fc::variant_object& update);
 
+
+       private:
+         /**
+           *  This method validates transactions without adding it to the pending state.
+           *  @return true if the transaction would validate
+           */
+          void validate_transaction(const signed_transaction& trx)const;
+          void validate_tapos( const signed_transaction& trx )const;
+          void validate_referenced_accounts( const signed_transaction& trx )const;
+          void validate_message_types( const signed_transaction& trx )const;
+
+
+          optional<session> _pending_tx_session;
+
+       public:
          // these were formerly private, but they have a fairly well-defined API, so let's make them public
          void apply_block(const signed_block& next_block, uint32_t skip = skip_nothing);
          void apply_transaction(const signed_transaction& trx, uint32_t skip = skip_nothing);
-         
-   private:
+      private:
          void _apply_block(const signed_block& next_block);
          void _apply_transaction(const signed_transaction& trx);
 
-         /**
-          * This method validates transactions without adding it to the pending state.
-          * @return true if the transaction would validate
-          */
-         void validate_transaction(const signed_transaction& trx)const;
-         /// Validate transaction helpers @{
-         void validate_uniqueness(const signed_transaction& trx)const;
-         void validate_tapos(const signed_transaction& trx)const;
-         void validate_referenced_accounts(const signed_transaction& trx)const;
-         void validate_expiration(const signed_transaction& trx) const;
-         /// @}
-
-         void validate_message_precondition(precondition_validate_context& c)const;
-         void apply_message(apply_context& c);
+         void validate_uniqueness( const signed_transaction& trx )const;
+         void validate_message_precondition( precondition_validate_context& c )const;
+         void apply_message( apply_context& c );
 
 
 
@@ -348,19 +351,18 @@ namespace hotc { namespace chain {
          void update_last_irreversible_block();
          void clear_expired_transactions();
 
-         optional<session>                _pending_tx_session;
-         deque<signed_transaction>        _pending_transactions;
-         fork_database                    _fork_db;
+         deque< signed_transaction >       _pending_transactions;
+         fork_database                     _fork_db;
 
-         block_log                        _block_log;
+         block_log                         _block_log;
 
-         bool                             _producing = false;
-         bool                             _pushing  = false;
-         uint64_t                         _skip_flags = 0;
+         bool                              _producing = false;
+         bool                              _pushing  = false;
+         uint64_t                          _skip_flags = 0;
 
-         flat_map<uint32_t,block_id_type> _checkpoints;
+         flat_map<uint32_t,block_id_type>  _checkpoints;
 
-         node_property_object             _node_property_object;
+         node_property_object              _node_property_object;
 
          typedef pair<account_name,message_type> handler_key;
          map< account_name, map<handler_key, message_validate_handler> >        message_validate_handlers;

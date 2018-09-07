@@ -8,16 +8,13 @@ add_library( omo_chain
              fork_database.cpp
 
              protocol/types.cpp
-             protocol/operations.cpp
              protocol/transaction.cpp
              protocol/block.cpp
 
              genesis_state.cpp
              get_config.cpp
 
-             evaluator.cpp
-
-             block_database.cpp
+             block_log.cpp
 
              ${HEADERS}
              ${PROTOCOL_HEADERS}
@@ -28,7 +25,7 @@ target_include_directories( omo_chain
                             PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include" "${CMAKE_CURRENT_BINARY_DIR}/include" )
 
 if(MSVC)
-  set_source_files_properties( db_init.cpp db_block.cpp database.cpp block_database.cpp PROPERTIES COMPILE_FLAGS "/bigobj" )
+  set_source_files_properties( db_init.cpp db_block.cpp database.cpp block_log.cpp PROPERTIES COMPILE_FLAGS "/bigobj" )
 endif(MSVC)
 
 INSTALL( TARGETS
